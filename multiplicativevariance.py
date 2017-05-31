@@ -12,15 +12,18 @@ from scipy.stats import gmean
 # normalize explanatory variables such that their product is 1 (i.e. divide by their geometric mean)
 def normalized_weight_multiplicative(explanatory):
     # weight is assumed positive
-    assert np.count_nonzero(explanatory<0)==0    
-    nweight=explanatory/gmean(explanatory,axis=1)[:,np.newaxis]
-    return nweight
+    assert np.count_nonzero(explanatory<0)==0
+    multfactor=gmean(explanatory,axis=1)    
+    nweight=explanatory/multfactor[:,np.newaxis]
+    return nweight, {'multiplicative':multfactor}
 
 # normalize explanatory variables so that they have mean zero and standard deviation 1
 def normalized_weight_additive(explanatory):
-    weight = explanatory-np.mean(explanatory,axis=1)[:,np.newaxis]
-    nweight = weight / np.std(weight,axis=1)[:,np.newaxis]
-    return nweight
+    addfactor = np.mean(explanatory,axis=1)
+    weight = explanatory-addfactor[:,np.newaxis]
+    multfactor=np.std(weight,axis=1)
+    nweight = weight / multfactor[:,np.newaxis]
+    return nweight, {'multiplicative':multfactor,'additive':addfactor}
 
 
 nsensors=3
@@ -31,10 +34,14 @@ seed=123#1234
 
 estimatekappa0=False
 estimatekappa=False
-estimatemu=False
+estimatemu=True
 estimatelambda=False
-estimatemu0=False
+estimatemu0=True
 estimatelambda0=False
+
+estimatesdmu=True
+estimatesdlambda=False
+estimatesdkappa=False
 
 # if None, use explankappa
 explanmu=None
@@ -56,27 +63,27 @@ _m = np.array([0.0,0.1,-0.15]) #nsensors;  intercept of additive calibration con
 _l = np.array([1.0,1.1,0.9]) # nsensors; intercept of multiplicative calibration constant
 _sigmapsquared=np.array([0.05,0.03,0.06])**2
 _kappa=np.array([[0.0,0.0,0.0],[0,0,0]])#nfac, nsensors; exponents of variance dependence
-_mu=np.array([[0.3,0.00,0.0],[0,0,0]])#nfac, nsensors; slope terms of dependence of additive calibration constant
-_lambda=np.array([[-0.2,0.00,0.0],[0,0,0]])#nfac, nsensors; slope terms of dependence of multiplicative calibration constant
+_mu=np.array([[0.0,0.00,0.0],[0,0,0]])#nfac, nsensors; slope terms of dependence of additive calibration constant
+_lambda=np.array([[-0.0,0.00,0.0],[0,0,0]])#nfac, nsensors; slope terms of dependence of multiplicative calibration constant
 
 # prepare kappa weights
 explankappa=numpy_rng.uniform(low=0.1,high=1.0,size=(2,n)) # nfac, n
 if explankappa is None:
     explankappa = np.zeros((0,n))
 nfackappa=explankappa.shape[0]
-weightkappa=normalized_weight_multiplicative(explankappa)
+weightkappa,normfactorkappa = normalized_weight_multiplicative(explankappa)
 
 # prepare mu weights
 if explanmu is None:
     explanmu = explankappa
 nfacmu = explanmu.shape[0]
-weightmu=normalized_weight_additive(explanmu)
+weightmu,normfactormu = normalized_weight_additive(explanmu)
 
 # prepare lambda weights
 if explanlambda is None:
     explanlambda = explankappa
 nfaclambda = explanlambda.shape[0]
-weightlambda = normalized_weight_additive(explanlambda)
+weightlambda,normfactorlambda = normalized_weight_additive(explanlambda)
 
 # simulate soil moisture (uniform for now, add options later)
 theta=numpy_rng.uniform(low=0,high=0.4,size=n)
@@ -107,30 +114,38 @@ if __name__=='__main__':
         lest = pm.StudentT('lest', dof, mu=1, sd=0.3,shape=(nsensors-1))
         
         # define mu and M for remaining products depending on whether mu is estimated or set to zero
+        if estimatesdmu:
+            sdmu = pm.Exponential('sdmu',1/0.3)
+        else:
+            sdmu = pm.Deterministic('sdmu',tt.ones(1)*0.3)
         if estimatemu:
-            muest = pm.StudentT('muest',dof,mu=0,sd=0.1,shape=(nfacmu,nsensors-1))
+            muest = pm.StudentT('muest',dof,mu=0,sd=sdmu,shape=(nfacmu,nsensors-1))
             Mest = mest[:,np.newaxis] + tt.sum(muest[:,:,np.newaxis]*weightmu[:,np.newaxis,:],axis=0) #inside the sum: first dimension: explan. factor, second dimension: product, third dimension: time 
         else:
             muest = pm.Deterministic('muest',tt.zeros((nfacmu,nsensors-1))) 
             Mest = mest[:,np.newaxis]
         # same for mu0 and M0
         if estimatemu0:
-            mu0est = pm.StudentT('mu0est',dof,mu=0,sd=0.1,shape=(nfacmu))
+            mu0est = pm.StudentT('mu0est',dof,mu=0,sd=sdmu,shape=(nfacmu))
             M0est = m0 + tt.sum(mu0est[:,np.newaxis]*weightmu,axis=0)
         else:
             mu0est = pm.Deterministic('mu0est',tt.zeros(nfacmu))
             M0est = m0
         
         # define lambda and L for remaing products depending on whether lambda is estimated or set to zero
+        if estimatesdlambda:
+            sdlambda = pm.Exponential('sdlambda',1/0.3)
+        else:
+            sdlambda = pm.Deterministic('sdlambda',tt.ones(1)*0.3)
         if estimatelambda:
-            lambdaest = pm.StudentT('lambdaest',dof,mu=0,sd=0.1,shape=(nfaclambda,nsensors-1))
+            lambdaest = pm.StudentT('lambdaest',dof,mu=0,sd=sdlambda,shape=(nfaclambda,nsensors-1))
             Lest = lest[:,np.newaxis] + tt.sum(lambdaest[:,:,np.newaxis]*weightlambda[:,np.newaxis,:],axis=0)
         else:
             lambdaest = pm.Deterministic('lambdaest',tt.zeros((nfaclambda,nsensors-1)))
             Lest = lest[:,np.newaxis]
         # same for lambda0 and L0
         if estimatelambda0:
-            lambda0est = pm.StudentT('lambda0est',dof,mu=0,sd=0.1,shape=(nfaclambda))
+            lambda0est = pm.StudentT('lambda0est',dof,mu=0,sd=sdlambda,shape=(nfaclambda))
             L0est = l0 + tt.sum(lambda0est[:,np.newaxis]*weightlambda,axis=0)
         else:
             lambda0est = pm.Deterministic('lambda0est',tt.zeros(nfaclambda))
@@ -141,12 +156,16 @@ if __name__=='__main__':
         # associated standard deviation for ease of reference
         sigmap=pm.Deterministic('sigmap',tt.sqrt(sigmapsquared))
         # define kappa and predicted product noise variance depending on how/whether kappa is estimated or not
+        if estimatesdkappa:
+            sdkappa = pm.Exponential('sdkappa',1/1.0)
+        else:
+            sdkappa = pm.Deterministic('sdkappa',tt.ones(1)*1.0)       
         if estimatekappa:
             if estimatekappa0:
-                kappaest=pm.StudentT('kappaest',dof,mu=0,sd=1,shape=(nfackappa,nsensors)) #note that for kappa all sensors (including reference sensor) are represented in the same variable
+                kappaest=pm.StudentT('kappaest',dof,mu=0,sd=sdkappa,shape=(nfackappa,nsensors)) #note that for kappa all sensors (including reference sensor) are represented in the same variable
                 kappa=pm.Deterministic('kappa',1.0*kappaest)
             else:
-                kappaest=pm.StudentT('kappaest',dof,mu=0,sd=1,shape=(nfackappa,nsensors-1))
+                kappaest=pm.StudentT('kappaest',dof,mu=0,sd=sdkappa,shape=(nfackappa,nsensors-1))
                 kappa0=tt.zeros((nfackappa,1))
                 kappa=pm.Deterministic('kappa',tt.concatenate([kappa0,kappaest],axis=1))
             sigmasquaredtotal=(sigmapsquared[:,np.newaxis]*tt.prod(tt.pow(weightkappa[:,np.newaxis,:],kappa[:,:,np.newaxis]),axis=0))
@@ -159,9 +178,11 @@ if __name__=='__main__':
         
         # distribution of theta
         # iid samples from static beta distribution (alpha and beta estimated)
-        alphatheta = pm.ChiSquared('alphatheta',dofchi)
-        betatheta = pm.ChiSquared('betatheta',dofchi)
-        theta = pm.Beta('theta',alpha=alphatheta,beta=betatheta, shape=(n))*porosity        
+        a = pm.ChiSquared('a',dofchi)
+        b = pm.ChiSquared('b',dofchi)
+        A = a
+        B = b
+        theta = pm.Beta('theta',alpha=A,beta=B, shape=(n))*porosity        
         
         # assemble mean of observed products
         y0=M0est+L0est*(theta[np.newaxis,:]-thetaoffset)
@@ -178,8 +199,8 @@ if __name__=='__main__':
         step = pm.NUTS(scaling=np.power(model.dict_to_array(v_params.stds), 2), is_cov=True)
         trace = pm.sample(draws=niter, step=step, start=v_params.means,random_seed=seed)        
        
-        #pm.summary(tracevi,varnames=['sigmap','mest','lest','porosity','alphatheta','betatheta','kappa'])
+        #pm.summary(tracevi,varnames=['sigmap','mest','lest','porosity','a','b','kappa'])
         print('-------------')
-        pm.summary(trace[niter//2::],varnames=['sigmap','mest','lest','porosity','alphatheta','betatheta','kappa','mu0est','muest','lambda0est','lambdaest'])
+        pm.summary(trace[niter//2::],varnames=['sigmap','mest','lest','sdmu','sdlambda','sdkappa','porosity','a','b','kappa','mu0est','muest','lambda0est','lambdaest'])
         
         plt.show()
