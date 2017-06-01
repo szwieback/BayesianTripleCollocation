@@ -38,13 +38,12 @@ estimatemu=True
 estimatelambda=False
 estimatemu0=True
 estimatelambda0=False
-
-estimatealphabeta=False # explanatory coefficients for alpha model 
+estimatealphabeta=True # explanatory coefficients for theta model 
 
 estimatesdmu=True
 estimatesdlambda=False
 estimatesdkappa=False
-estimatesdalphabeta=False
+estimatesdalphabeta=True
 
 # if None, use explankappa
 explanmu=None
@@ -56,10 +55,15 @@ thetamodel = 'logistic'
 
 # multiplicative calibration constant measures spread around thetaoffset
 thetaoffset=0.15
-# dof of prior distributions
+# prior distributions
 dof=4 # t distribution
 dofchi=3 # chi squared for alpha/beta in beta distribution
+priorfactor = 2.0 # modify default prior spreads by this factor
+
+# other constants
 softabsvalue=0.01#value for softabs function applied to modelled standard deviations etc. that should be positive
+
+
 # initialize random number generator
 numpy_rng = np.random.RandomState(seed)
 
@@ -124,14 +128,14 @@ if __name__=='__main__':
         m0=tt.zeros((1))+0.0
         l0=tt.zeros((1))+1.0
         # m and l priors for the remaining products        
-        mest = pm.StudentT('mest', dof, mu=0, sd=0.3,shape=(nsensors-1))
-        lest = pm.StudentT('lest', dof, mu=1, sd=0.3,shape=(nsensors-1))
+        mest = pm.StudentT('mest', dof, mu=0, sd=0.3*priorfactor,shape=(nsensors-1))
+        lest = pm.StudentT('lest', dof, mu=1, sd=0.3*priorfactor,shape=(nsensors-1))
         
         # define mu and M for remaining products depending on whether mu is estimated or set to zero
         if estimatesdmu:
-            sdmu = pm.Exponential('sdmu',1/0.3)
+            sdmu = pm.Exponential('sdmu',1/(0.3*priorfactor))
         else:
-            sdmu = pm.Deterministic('sdmu',tt.ones(1)*0.3)
+            sdmu = pm.Deterministic('sdmu',tt.ones(1)*0.3*priorfactor)
         if estimatemu:
             muest = pm.StudentT('muest',dof,mu=0,sd=sdmu,shape=(nfacmu,nsensors-1))
             Mest = mest[:,np.newaxis] + tt.sum(muest[:,:,np.newaxis]*weightmu[:,np.newaxis,:],axis=0) #inside the sum: first dimension: explan. factor, second dimension: product, third dimension: time 
@@ -148,9 +152,9 @@ if __name__=='__main__':
         
         # define lambda and L for remaing products depending on whether lambda is estimated or set to zero
         if estimatesdlambda:
-            sdlambda = pm.Exponential('sdlambda',1/0.3)
+            sdlambda = pm.Exponential('sdlambda',1/(0.3*priorfactor))
         else:
-            sdlambda = pm.Deterministic('sdlambda',tt.ones(1)*0.3)
+            sdlambda = pm.Deterministic('sdlambda',tt.ones(1)*0.3*priorfactor)
         if estimatelambda:
             lambdaest = pm.StudentT('lambdaest',dof,mu=0,sd=sdlambda,shape=(nfaclambda,nsensors-1))
             Lest = lest[:,np.newaxis] + tt.sum(lambdaest[:,:,np.newaxis]*weightlambda[:,np.newaxis,:],axis=0)
@@ -166,14 +170,14 @@ if __name__=='__main__':
             L0est = l0
         
         # prior for product noise variance (all explanatory factors set to 1)
-        sigmapsquared=pm.Exponential('sigmapsquared', 1/0.1, shape=(nsensors))
+        sigmapsquared=pm.Exponential('sigmapsquared', 1/(0.1*priorfactor), shape=(nsensors))
         # associated standard deviation for ease of reference
         sigmap=pm.Deterministic('sigmap',tt.sqrt(sigmapsquared))
         # define kappa and predicted product noise variance depending on how/whether kappa is estimated or not
         if estimatesdkappa:
-            sdkappa = pm.Exponential('sdkappa',1/1.0)
+            sdkappa = pm.Exponential('sdkappa',1/(1.0*priorfactor))
         else:
-            sdkappa = pm.Deterministic('sdkappa',tt.ones(1)*1.0)       
+            sdkappa = pm.Deterministic('sdkappa',tt.ones(1)*1.0*priorfactor)       
         if estimatekappa:
             if estimatekappa0:
                 kappaest=pm.StudentT('kappaest',dof,mu=0,sd=sdkappa,shape=(nfackappa,nsensors)) #note that for kappa all sensors (including reference sensor) are represented in the same variable
@@ -188,7 +192,7 @@ if __name__=='__main__':
             sigmasquaredtotal=sigmapsquared[:,np.newaxis]
         
         # porosity, i.e. maximum soil moisture content: T prior
-        porosity = pm.StudentT('porosity',dof,mu=0.4,sd=0.1)
+        porosity = pm.StudentT('porosity',dof,mu=0.4,sd=0.1*priorfactor)
         
         # distribution of theta
         if thetamodel == 'beta':
@@ -196,14 +200,14 @@ if __name__=='__main__':
             a = pm.ChiSquared('a',dofchi)
             b = pm.ChiSquared('b',dofchi)
             if estimatesdalphabeta:
-                sdalphabeta = pm.Exponential('sdalphabeta',1/0.3)
+                sdalphabeta = pm.Exponential('sdalphabeta',1/(0.3*priorfactor))
             else:
-                sdalphabeta = pm.Deterministic('sdalphabeta',tt.ones(1)*0.3)            
+                sdalphabeta = pm.Deterministic('sdalphabeta',tt.ones(1)*0.3*priorfactor)            
             if estimatealphabeta:
                 alpha=pm.StudentT('alpha',dof,mu=0,sd=sdalphabeta,shape=(nfacalphabeta))
                 beta=pm.StudentT('beta',dof,mu=0,sd=sdalphabeta,shape=(nfacalphabeta))            
-                A = tt.sqrt(softabsvalue**2+tt.pow(a + tt.sum(alpha[:,np.newaxis]*weightalphabeta,axis=0)),2) # soft absolute value; A and B should be >> softabsvalue
-                B = tt.sqrt(softabsvalue**2+tt.pow(b + tt.sum(beta[:,np.newaxis]*weightalphabeta,axis=0)),2)
+                A = tt.sqrt(softabsvalue**2+tt.pow(a + tt.sum(alpha[:,np.newaxis]*weightalphabeta,axis=0),2)) # soft absolute value; A and B should be >> softabsvalue
+                B = tt.sqrt(softabsvalue**2+tt.pow(b + tt.sum(beta[:,np.newaxis]*weightalphabeta,axis=0),2))
             else:
                 alpha = pm.Deterministic('alpha',tt.zeros(1)*0.0)
                 beta = pm.Deterministic('beta', tt.zeros(1)*0.0)
@@ -213,17 +217,17 @@ if __name__=='__main__':
             theta = pm.Deterministic('theta',porosity*thetaub)
         elif thetamodel == 'logistic':
             # spline with logistic link
-            a = pm.StudentT('a',dof,mu=0.0,sd=3.0)
-            b = pm.Exponential('b',1./3)
+            a = pm.StudentT('a',dof,mu=0.0,sd=3.0*priorfactor)
+            b = pm.Exponential('b',1./(3*priorfactor))
             if estimatesdalphabeta:
-                sdalphabeta = pm.Exponential('sdalphabeta',1.0)
+                sdalphabeta = pm.Exponential('sdalphabeta',1.0/(1.0*priorfactor))
             else:
-                sdalphabeta = pm.Deterministic('sdalphabeta',tt.ones(1)*1.0)              
+                sdalphabeta = pm.Deterministic('sdalphabeta',tt.ones(1)*1.0*priorfactor)              
             if estimatealphabeta:
                 alpha=pm.StudentT('alpha',dof,mu=0,sd=sdalphabeta,shape=(nfacalphabeta))
                 beta=pm.StudentT('beta',dof,mu=0,sd=sdalphabeta,shape=(nfacalphabeta))            
                 A = a + tt.sum(alpha[:,np.newaxis]*weightalphabeta,axis=0)
-                B = tt.sqrt(softabsvalue**2+tt.pow(b + tt.sum(beta[:,np.newaxis]*weightalphabeta,axis=0)),2)
+                B = tt.sqrt(softabsvalue**2+tt.pow(b + tt.sum(beta[:,np.newaxis]*weightalphabeta,axis=0),2))
             else:
                 alpha = pm.Deterministic('alpha',tt.zeros(1)*0.0)
                 beta = pm.Deterministic('beta', tt.zeros(1)*0.0)
@@ -248,6 +252,6 @@ if __name__=='__main__':
        
         #pm.summary(tracevi,varnames=['sigmap','mest','lest','porosity','a','b','kappa'])
         print('-------------')
-        pm.summary(trace[niter//2::],varnames=['sigmap','mest','lest','sdmu','sdlambda','sdkappa','porosity','a','b','kappa','mu0est','muest','lambda0est','lambdaest'])
+        pm.summary(trace[niter//2::],varnames=['sigmap','mest','lest','sdmu','sdlambda','sdkappa','sdalphabeta','porosity','a','b','kappa','mu0est','muest','lambda0est','lambdaest','alpha','beta'])
         
         plt.show()
