@@ -39,20 +39,27 @@ estimatelambda=False
 estimatemu0=True
 estimatelambda0=False
 
+estimatealphabeta=False # explanatory coefficients for alpha model 
+
 estimatesdmu=True
 estimatesdlambda=False
 estimatesdkappa=False
+estimatesdalphabeta=False
 
 # if None, use explankappa
 explanmu=None
 explanlambda = None
+explanalphabeta = None
+
+# theta model options
+thetamodel = 'logistic'
 
 # multiplicative calibration constant measures spread around thetaoffset
 thetaoffset=0.15
 # dof of prior distributions
 dof=4 # t distribution
 dofchi=3 # chi squared for alpha/beta in beta distribution
-
+softabsvalue=0.01#value for softabs function applied to modelled standard deviations etc. that should be positive
 # initialize random number generator
 numpy_rng = np.random.RandomState(seed)
 
@@ -84,6 +91,13 @@ if explanlambda is None:
     explanlambda = explankappa
 nfaclambda = explanlambda.shape[0]
 weightlambda,normfactorlambda = normalized_weight_additive(explanlambda)
+
+# prepare alpha/beta weights
+if explanalphabeta is None:
+    explanalphabeta = explankappa
+nfacalphabeta = explanlambda.shape[0]
+weightalphabeta,normfactoralphabeta = normalized_weight_additive(explanalphabeta)
+
 
 # simulate soil moisture (uniform for now, add options later)
 theta=numpy_rng.uniform(low=0,high=0.4,size=n)
@@ -177,13 +191,46 @@ if __name__=='__main__':
         porosity = pm.StudentT('porosity',dof,mu=0.4,sd=0.1)
         
         # distribution of theta
-        # iid samples from static beta distribution (alpha and beta estimated)
-        a = pm.ChiSquared('a',dofchi)
-        b = pm.ChiSquared('b',dofchi)
-        A = a
-        B = b
-        theta = pm.Beta('theta',alpha=A,beta=B, shape=(n))*porosity        
-        
+        if thetamodel == 'beta':
+            # beta distribution (A=alpha and B=beta estimated), can vary with explan. factors
+            a = pm.ChiSquared('a',dofchi)
+            b = pm.ChiSquared('b',dofchi)
+            if estimatesdalphabeta:
+                sdalphabeta = pm.Exponential('sdalphabeta',1/0.3)
+            else:
+                sdalphabeta = pm.Deterministic('sdalphabeta',tt.ones(1)*0.3)            
+            if estimatealphabeta:
+                alpha=pm.StudentT('alpha',dof,mu=0,sd=sdalphabeta,shape=(nfacalphabeta))
+                beta=pm.StudentT('beta',dof,mu=0,sd=sdalphabeta,shape=(nfacalphabeta))            
+                A = tt.sqrt(softabsvalue**2+tt.pow(a + tt.sum(alpha[:,np.newaxis]*weightalphabeta,axis=0)),2) # soft absolute value; A and B should be >> softabsvalue
+                B = tt.sqrt(softabsvalue**2+tt.pow(b + tt.sum(beta[:,np.newaxis]*weightalphabeta,axis=0)),2)
+            else:
+                alpha = pm.Deterministic('alpha',tt.zeros(1)*0.0)
+                beta = pm.Deterministic('beta', tt.zeros(1)*0.0)
+                A = a
+                B = b
+            thetaub = pm.Beta('thetaub',alpha=A,beta=B, shape=(n))
+            theta = pm.Deterministic('theta',porosity*thetaub)
+        elif thetamodel == 'logistic':
+            # spline with logistic link
+            a = pm.StudentT('a',dof,mu=0.0,sd=3.0)
+            b = pm.Exponential('b',1./3)
+            if estimatesdalphabeta:
+                sdalphabeta = pm.Exponential('sdalphabeta',1.0)
+            else:
+                sdalphabeta = pm.Deterministic('sdalphabeta',tt.ones(1)*1.0)              
+            if estimatealphabeta:
+                alpha=pm.StudentT('alpha',dof,mu=0,sd=sdalphabeta,shape=(nfacalphabeta))
+                beta=pm.StudentT('beta',dof,mu=0,sd=sdalphabeta,shape=(nfacalphabeta))            
+                A = a + tt.sum(alpha[:,np.newaxis]*weightalphabeta,axis=0)
+                B = tt.sqrt(softabsvalue**2+tt.pow(b + tt.sum(beta[:,np.newaxis]*weightalphabeta,axis=0)),2)
+            else:
+                alpha = pm.Deterministic('alpha',tt.zeros(1)*0.0)
+                beta = pm.Deterministic('beta', tt.zeros(1)*0.0)
+                A = a
+                B = b      
+            thetaub = pm.Normal('thetaub',mu=A, sd=B, shape=(n)) 
+            theta = pm.Deterministic('theta',porosity*tt.pow(1+tt.exp(-thetaub), -1)) 
         # assemble mean of observed products
         y0=M0est+L0est*(theta[np.newaxis,:]-thetaoffset)
         yrest = Mest+Lest*(theta[np.newaxis,:]-thetaoffset) 
