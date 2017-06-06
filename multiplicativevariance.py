@@ -11,21 +11,21 @@ from model_inference import model_inference
 from simulate_product import simulate_product
 
 nsensors=3
-n=200
+n=500
 # currently used for both simulation and inference
 seed=1234#123
 
-estimateexplanterms={'kappa0':True,'kappa':True,'mu':True,'mu0':True,'lambda':False,'lambda0':False,'alphabeta':True}
-estimatesdexplanterms={'mu':True,'lambda':False,'kappa':True,'alphabeta':True}
+estimateexplanterms={'kappa0':True,'kappa':True,'mu':True,'mu0':True,'lambda':True,'lambda0':True,'alphabeta':False}
+estimatesdexplanterms={'mu':False,'lambda':False,'kappa':False,'alphabeta':False}
 
 # theta model options
-thetamodel = 'logistic'
+thetamodel = 'beta'#'logistic'
 # multiplicative calibration constant measures spread around thetaoffset
 thetaoffset=0.15
 # prior distributions
 doft=4 # t distribution
 dofchi=3 # chi squared for alpha/beta in beta distribution
-priorfactor = 2.0 # modify default prior spreads by this factor
+priorfactor = 1.0 # modify default prior spreads by this factor
 
 # other constants
 softabsvalue=0.01#value for softabs function applied to modelled standard deviations etc. that should be positive
@@ -34,7 +34,9 @@ softabsvalue=0.01#value for softabs function applied to modelled standard deviat
 explanmu=None
 explanlambda = None
 explanalphabeta = None
-visible,internal,normalized_weights=simulate_product(nsensors,n,thetaoffset=thetaoffset,seed=seed)
+spline=False
+splineproperties={} if spline else None
+visible,internal,normalized_weights=simulate_product(nsensors,n,spline=spline,splineproperties=splineproperties,thetaoffset=thetaoffset,seed=seed)
 
 if __name__=='__main__':
     niter=2000

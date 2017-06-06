@@ -68,7 +68,7 @@ def periodic_spline_predictors(fractionalyear,nsegments=12,k=3):
     diffcoefftocoeff=lambda diffcoeff: np.dot(Minv,diffcoeff)
     evalbspline=lambda coeff:np.tensordot(Bx,coeff,axes=([1],[0]))
     evalbsplinediffcoeff=lambda diffcoeff:np.tensordot(Bxdiff,diffcoeff,axes=([1],[0]))
-    outp={'basisfunctions':{'coeff':Bx,'diffcoeff':Bxdiff},
+    outp={'basisfunctions':{'coeff':Bx.T,'diffcoeff':Bxdiff.T},
           'conversion':{'coefftodiffcoeff':coefftodiffcoeff,'diffcoefftocoeff':diffcoefftocoeff},
           'evaluation':{'coeff':evalbspline,'diffcoeff':evalbsplinediffcoeff,'M':M,'Minv':Minv}}
     return outp

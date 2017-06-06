@@ -16,7 +16,7 @@ def model_inference(model,niter=2000,nadvi=200000,ntraceadvi=1000,seed=123,nchai
         for chain in range(nchains):
             #step = pm.NUTS(scaling=np.power(model.dict_to_array(v_params.stds), 2), is_cov=True)                        
             step = pm.NUTS(scaling=np.power(model.dict_to_array(v_params.stds), 2), is_cov=True)
-            trace = pm.sample(niter, chain=chain, step=step,start=tracevi[chain],random_seed=seed)
+            trace = pm.sample(niter, chain=chain, step=step,random_seed=seed)#start=tracevi[chain]
             trace=trace[niter//2::2]
             traces.append(trace)
         trace=merge_traces(traces)

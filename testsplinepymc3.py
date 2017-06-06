@@ -13,11 +13,11 @@ import pylab as plt
 n=150
 nsegments=12
 
-fy=np.random.rand(n)
-fy=np.sort(fy)
-y=np.cos(2*fy*(2*np.pi)+1.1)+np.random.randn(n)*0.3
-psp=periodic_spline_predictors(fy,nsegments=nsegments)
-basisf_=psp['basisfunctions']['diffcoeff']
+fy = np.random.rand(n)
+fy = np.sort(fy)
+y = np.cos(2*fy*(2*np.pi)+1.1)+np.random.randn(n)*0.3
+psp = periodic_spline_predictors(fy,nsegments=nsegments)
+basisf_ = psp['basisfunctions']['diffcoeff']
 basisf = shared(basisf_)
 
 with pm.Model() as model:

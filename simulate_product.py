@@ -7,7 +7,7 @@ import numpy as np
 from normalize_weights import normalize_weights
 
 
-def simulate_product(nsensors,n,porosity=0.4,thetaoffset=0.2,numpy_rng=None,seed=123):
+def simulate_product(nsensors,n,spline=False,splineproperties=None,porosity=0.4,thetaoffset=0.2,numpy_rng=None,seed=123):
     # n: number of observations
     # nsensors: number of sensors/products
     # numpy_rng: numpy random number generator
@@ -22,13 +22,31 @@ def simulate_product(nsensors,n,porosity=0.4,thetaoffset=0.2,numpy_rng=None,seed
     _m = np.array([0.0,0.1,-0.15]) #nsensors;  intercept of additive calibration constant
     _l = np.array([1.0,1.1,0.9]) # nsensors; intercept of multiplicative calibration constant
     _sigmapsquared=np.array([0.05,0.03,0.06])**2
-    _kappa=np.array([[0.0,0.0,0.0],[0,0,0]])#nfac, nsensors; exponents of variance dependence
-    _mu=np.array([[0.0,0.00,0.0],[0,0,0]])#nfac, nsensors; slope terms of dependence of additive calibration constant
-    _lambda=np.array([[-0.0,0.00,0.0],[0,0,0]])#nfac, nsensors; slope terms of dependence of multiplicative calibration constant
-    explan=numpy_rng.uniform(low=0.1,high=1.0,size=(2,n)) # nfac, n
-    normalized_weights=normalize_weights(explankappa=explan, explanmu=explan, explanlambda=explan, explanalphabeta=explan, n=n)
+    if not spline:
+        _kappa=np.array([[0.0,0.0,0.0],[0,0,0]])#nfac, nsensors; exponents of variance dependence
+        _mu=np.array([[0.05,-0.1,0.0],[0,0,0.08]])#nfac, nsensors; slope terms of dependence of additive calibration constant
+        _lambda=np.array([[-0.00,0.00,0.0],[0,0,0.13]])#nfac, nsensors; slope terms of dependence of multiplicative calibration constant
+        explan=numpy_rng.uniform(low=0.1,high=1.0,size=(2,n)) # nfac, n
+        normalized_weights=normalize_weights(explankappa=np.abs(explan), explanmu=explan, explanlambda=explan, explanalphabeta=explan, n=n)
+    else:
+        assert splineproperties is not None
+        from spline_predictors import periodic_spline_predictors
+        fy = numpy_rng.uniform(size=(n))
+        fy = np.sort(fy)
+        nfac = nsegments = splineproperties['nsegments'] if 'nsegments' in splineproperties else 12
+        psp = periodic_spline_predictors(fy,nsegments=nsegments)
+        explan = psp['basisfunctions']['diffcoeff']
+        _kappa = np.zeros((nfac,nsensors))
+        _mu = np.zeros((nfac,nsensors))
+        _lambda = np.zeros((nfac,nsensors))
+        _mu[3:9,1]=0.1*np.array([0.5,1,0.5,-0.5,-0.5,-1.0]) 
+        normalized_weights=normalize_weights(explankappa=np.abs(explan), explanmu=explan, explanlambda=explan, explanalphabeta=explan, n=n)
+    
     # simulate soil moisture (uniform for now, add options later)
     theta=numpy_rng.uniform(low=0,high=porosity,size=n)
+    
+    
+    
     # assemble soil moisture products
     # modelled variance
     # model parameterization from Bayesian Computation for Parametric Models of Heteroscedasticity in the Linear Model; Boscardin and Gelman 
