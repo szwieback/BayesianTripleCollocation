@@ -27,13 +27,16 @@ def prepare_weights(explan=None,n=None,multiplicative=False,additive=True):
     if explan is None:
         assert n is not None
         explan = np.zeros((0,n))
-    nfac=explan.shape[0]
-    if multiplicative:
-        weight,normfactor = normalize_weight_multiplicative(explan)
-    elif additive:
-        weight,normfactor = normalize_weight_additive(explan)
+        weight = explan
+        normfactor = np.zeros((0))
     else:
-        raise
+        if multiplicative:
+            weight,normfactor = normalize_weight_multiplicative(explan)
+        elif additive:
+            weight,normfactor = normalize_weight_additive(explan)
+        else:
+            raise        
+    nfac=explan.shape[0]
     return {'nfac':nfac,'normfactor':normfactor,'weight':weight}    
 
 def normalize_weights(explankappa=None,explanmu=None,explanlambda=None,explanalphabeta=None,n=None):
