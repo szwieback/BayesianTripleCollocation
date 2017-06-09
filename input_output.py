@@ -26,7 +26,7 @@ def save_results(pathout, resultsdict):
         
 def read_results(pathin):
     results={}
-    for outputtype in ['trace','v_params','tracevi']:
+    for outputtype in ['trace','v_params','tracevi','visible','normalized_weights']:
         try:
             res=read_pickle(os.path.join(pathin, outputtype+'.p'))
             results[outputtype]=res

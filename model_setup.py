@@ -6,12 +6,14 @@ Created on Jun 1, 2017
 import pymc3 as pm
 import theano.tensor as tt
 import numpy as np
-def model_setup(visible,normalized_weights,estimateexplanterms={},estimatesdexplanterms={},thetamodel='beta',thetaoffset=0.15,doft=4,dofchi=3,priorfactor=1.0,softabsvalue=0.01,studenterrors=False):
+def model_setup(visible,normalized_weights,estimateexplanterms={},estimatesdexplanterms={},inferenceparams={}):
     nsensors=visible['y'].shape[0]
     n=visible['y'].shape[1]
     
     model = pm.Model()
     with model:
+        doft = inferenceparams['doft'] if 'doft' in inferenceparams else 4
+        priorfactor = inferenceparams['priorfactor'] if 'priorfactor' in inferenceparams else 1.0
         
         # m and l for reference product 0
         m0=tt.zeros((1))+0.0
@@ -89,6 +91,9 @@ def model_setup(visible,normalized_weights,estimateexplanterms={},estimatesdexpl
         # porosity, i.e. maximum soil moisture content: T prior
         porosity = pm.StudentT('porosity',doft,mu=0.4,sd=0.1*priorfactor)
         
+        thetamodel = inferenceparams['thetamodel'] if 'thetamodel' in inferenceparams else 'beta'
+        dofchi = inferenceparams['dofchi'] if 'dofchi' in inferenceparams else 3
+        softabsvalue = inferenceparams['softabsvalue'] if 'softabsvalue' in inferenceparams else 0.01
         # distribution of theta
         if thetamodel == 'beta':
             # beta distribution (A=alpha and B=beta estimated), can vary with explan. factors
@@ -136,12 +141,15 @@ def model_setup(visible,normalized_weights,estimateexplanterms={},estimatesdexpl
             thetaub = pm.Deterministic('thetaub', A+B*thetaubnondim)
             #thetaub = pm.Normal('thetaub',mu=A, sd=B, shape=(n)) 
             theta = pm.Deterministic('theta', porosity*tt.pow(1+tt.exp(-thetaub), -1)) 
+        
         # assemble mean of observed products
+        thetaoffset = inferenceparams['thetaoffset'] if 'thetaoffset' in inferenceparams else 0.15
         y0 = M0est+L0est*(theta[np.newaxis,:]-thetaoffset)
         yrest = Mest+Lest*(theta[np.newaxis,:]-thetaoffset) 
         yest = tt.concatenate([y0,yrest], axis=0)
         
         # model for observed products
+        studenterrors = inferenceparams['studenterrors'] if 'studenterrors' in inferenceparams else False
         if not studenterrors:
             y = pm.Normal('y', mu=yest, sd=tt.sqrt(sigmasquaredtotal), observed=visible['y'])
         else:

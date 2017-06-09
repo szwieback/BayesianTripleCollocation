@@ -19,16 +19,9 @@ estimateexplanterms = {'kappa0':False, 'kappa':False, 'mu':True, 'mu0':False, 'l
 estimatesdexplanterms = {'mu':False, 'lambda':False, 'kappa':False, 'alphabeta':False}
 
 # theta model options
-thetamodel = 'beta'#'logistic'
-# multiplicative calibration constant measures spread around thetaoffset
+thetamodel = 'logistic'#'beta'; logistic much faster
 thetaoffset = 0.15
-# prior distributions
-doft = 4 # t distribution
-dofchi = 3 # chi squared for alpha/beta in beta distribution
-priorfactor = 1.0 # modify default prior spreads by this factor
 
-# other constants
-softabsvalue = 0.01#value for softabs function applied to modelled standard deviations etc. that should be positive
 
 # if None, use explankappa
 explanmu = None
@@ -50,19 +43,32 @@ if __name__=='__main__':
     params['l'] = np.array([1.0,1.1,0.9]) # nsensors; intercept of multiplicative calibration constant
     params['sigmapsquared'] = np.array([0.02,0.04,0.06])**2
     params['thetaoffset'] = thetaoffset
+    
+    # prior distributions
+    doft = 4 # t distribution
+    dofchi = 3 # chi squared for alpha/beta in beta distribution
+    priorfactor = 1.0 # modify default prior spreads by this factor
+
+    # other constants
+    softabsvalue = 0.01#value for softabs function applied to modelled standard deviations etc. that should be positive
+    studenterrors = False
+    
+    inferenceparams={'thetaoffset':0.15,'thetamodel':'logistic', 'doft':4, 'dofchi':3, 'priorfactor':1.0, 'softabsvalue':0.01, 'studenterrors': False}
+
+    
+    
     for rep in range(nrepetitions):
         
         pathoutrep = os.path.join(pathout, scenario, str(rep))
         
         visible, internal, normalized_weights = simulate_product(n, params, numpy_rng=numpy_rng)
         model = model_setup(visible, normalized_weights, estimateexplanterms=estimateexplanterms, 
-                            estimatesdexplanterms=estimatesdexplanterms, thetamodel=thetamodel, thetaoffset=thetaoffset, 
-                            doft=doft, dofchi=dofchi, priorfactor=priorfactor, softabsvalue=softabsvalue)
+                            estimatesdexplanterms=estimatesdexplanterms, inferenceparams=inferenceparams)
         #print([(x,x.tag.test_value.shape) for x in model.unobserved_RVs])
         trace, v_params, tracevi = model_inference(model, niter=niter, seed=numpy_rng.randint(0,10000))
         save_results(pathoutrep, {'trace':trace,'v_params':v_params,'visible':visible,'normalized_weights':normalized_weights})
         print(visible['explan'])
-        import pymc3 as pm       
+        import pymc3 as pm
         #pm.summary(tracevi,varnames=['sigmap','mest','lest','porosity','a','b','kappa'])
         print('-------------')
         #print(pm.diagnostics.gelman_rubin(trace))
