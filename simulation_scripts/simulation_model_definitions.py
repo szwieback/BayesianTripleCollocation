@@ -39,6 +39,15 @@ def simulation_model(scenarioname):
         params = simulation_model('Q1lambdamu')
     elif scenarioname in ['Q2kappa_lambdamu', 'Q2kappa_base']:
         params = simulation_model('Q1kappa')  
+    elif scenarioname in ['Q3dof', 'Q3priorfactor', 'Q3beta', 'Q3logisticspline', 'Q3studenttinference']:
+        params = simulation_model('Q1lambdamu')
+    elif scenarioname == 'Q3ar1':
+        params = simulation_model('Q1lambdamu')
+        params['noisedistribution'] = 'normal_ar1'
+    elif scenarioname in ['Q3studenttsim', 'Q3studenttsiminference']:
+        params = simulation_model('Q1lambdamu')
+        params['noisedistribution'] = 'studentt'
+        params['noise_dof'] = 6
     else:
         raise NotImplementedError
     return params

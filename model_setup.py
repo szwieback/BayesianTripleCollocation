@@ -153,6 +153,7 @@ def model_setup(visible,normalized_weights,estimateexplanterms={},estimatesdexpl
         if not studenterrors:
             y = pm.Normal('y', mu=yest, sd=tt.sqrt(sigmasquaredtotal), observed=visible['y'])
         else:
-            y = pm.StudentT('y', doft, mu=yest, sd=tt.sqrt(sigmasquaredtotal), observed=visible['y'])
+            studenterrors_dof = inferenceparams['studenterrors_dof'] if 'studenterrors_dof' in inferenceparams else doft
+            y = pm.StudentT('y', studenterrors_dof, mu=yest, sd=tt.sqrt(sigmasquaredtotal), observed=visible['y'])
     return model
 

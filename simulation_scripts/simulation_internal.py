@@ -19,5 +19,6 @@ def simulation_internal(scenario, n, numpy_rng=None, pathout=None, niter=2000, n
                         estimatesdexplanterms=estimatesdexplanterms, inferenceparams=inferenceparams)
     trace, v_params, tracevi = model_inference(model, niter=niter, nchains=nchains, seed=numpy_rng.randint(0,10000))
     if pathout is not None:
-        save_results(pathout, {'trace':trace,'v_params':v_params,'visible':visible_w,'normalized_weights':normalized_weights_w, 
-                               'simulation_normalized_weights':normalized_weights, 'simulation_internal':internal})
+        save_results(pathout, {'trace':trace,'v_params':v_params,'visible':visible_w,
+                               'normalized_weights':normalized_weights_w, 
+                               'simulation_normalized_weights':normalized_weights})

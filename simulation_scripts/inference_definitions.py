@@ -26,6 +26,26 @@ def inference_definition(scenarioname):
         estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1lambdamu')
     elif scenarioname in ['Q2kappa_base', 'Q2lambdamu_base']:
         estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1base')
+    #'Q3dof', 'Q3priorfactor', 'Q3beta'
+    elif scenarioname =='Q3dof':
+        estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1lambdamu')
+        inferenceparams['doft'] = 10
+    elif scenarioname =='Q3priorfactor':
+        estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1lambdamu')
+        inferenceparams['priorfactor'] = 2.0
+    elif scenarioname == 'Q3beta':
+        estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1lambdamu')
+        inferenceparams['thetamodel'] = 'beta'
+    elif scenarioname == 'Q3logisticspline':
+        estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1lambdamu')
+        estimateexplanterms['alphabeta'] = True
+        estimatesdexplanterms['alphabeta'] = True
+    elif scenarioname in ['Q3ar1', 'Q3studenttsim']:
+        estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1lambdamu')
+    elif scenarioname in ['Q3studenttinference', 'Q3studenttsiminference']:
+        estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1lambdamu')
+        inferenceparams['studenterrors'] = True
+        inferenceparams['studenterrors_dof'] = 6            
     else:
         raise NotImplementedError
     return estimateexplanterms, estimatesdexplanterms, inferenceparams
@@ -38,6 +58,10 @@ def inference_weights(scenarioname, visible, normalized_weights):
         visible_w['explan']['mu'] = psp['basisfunctions']['diffcoeff']
         visible_w['explan']['lambda'] = psp['basisfunctions']['diffcoeff']
         normalized_weights_w = normalize_weights(explankappa=visible['explan']['kappa'], explanmu=visible_w['explan']['mu'], explanlambda=visible_w['explan']['lambda'], n=len(visible['fy']))
+    if scenarioname == 'Q3logisticspline':
+        nsegments = 12
+        psp = periodic_spline_predictors(visible['fy'],nsegments=nsegments)
+        normalized_weights_w = normalize_weights(explankappa=visible['explan']['kappa'], explanmu=visible_w['explan']['mu'], explanlambda=visible_w['explan']['lambda'], explanalphabeta = psp['basisfunctions']['diffcoeff'],n=len(visible['fy']))
     else:
         normalized_weights_w = deepcopy(normalized_weights)
     return visible_w, normalized_weights_w

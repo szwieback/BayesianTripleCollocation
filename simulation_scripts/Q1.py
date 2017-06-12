@@ -30,5 +30,6 @@ def Q1_simulation():
                 
 if __name__=='__main__':
     Q1_simulation()     
-      
+    import Q2
+    Q2.Q2_simulation()
             
