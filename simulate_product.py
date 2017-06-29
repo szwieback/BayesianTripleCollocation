@@ -26,7 +26,7 @@ def simulate_product(n, params, numpy_rng=None, seed=123):
     paramssim['porosity'] = params['porosity'] if 'porosity' in params else 0.4
     paramssim['thetaoffset'] = params['thetaoffset'] if 'thetaoffset' in params else 0.15
 
-    # simulate soil moisture (uniform for now, add options later)
+    # simulate soil moisture
     if paramssim['soilmoisturemodel'] == 'uniform':
         theta = numpy_rng.uniform(low = 0, high = paramssim['porosity'], size = n)
         fy = numpy_rng.uniform(size = (n))
@@ -72,13 +72,28 @@ def simulate_product(n, params, numpy_rng=None, seed=123):
     # model parameterization from Bayesian Computation for Parametric Models of Heteroscedasticity in the Linear Model; Boscardin and Gelman 
     _sigmasquared = paramssim['sigmapsquared'][:,np.newaxis]*np.prod(np.power(normalized_weights['kappa']['weight'][:,np.newaxis,:],paramssim['kappa'][:,:,np.newaxis]),axis=0) # inside product: first dimension explanatory factor, second dimension product, third dimension time
     # noise, take non-normal noise as well + AR(1) with rho = 0.5: mixing with 1/2 (previous final noise term) and sqrt(3)/2 (current noise term before mixing)
-    noise=np.sqrt(_sigmasquared)*numpy_rng.normal(size=(nsensors,n))
+    paramssim['noisedistribution'] = params['noisedistribution'] if 'noisedistribution' in params else 'normal'
+    if paramssim['noisedistribution'] ==  'normal':
+        noise = np.sqrt(_sigmasquared)*numpy_rng.normal(size=(nsensors,n))
+    elif paramssim['noisedistribution'] == 'studentt':
+        paramssim['noise_dof'] = params['noise_dof'] if 'noise_dof' in params else 6
+        noise = np.sqrt(_sigmasquared)*np.sqrt((paramssim['noise_dof']-2)/paramssim['noise_dof'])*numpy_rng.standard_t(paramssim['noise_dof'],size=(nsensors,n)) # var(standard_t) != 1 
+    elif paramssim['noisedistribution'] == 'normal_ar1': # this is only an approximation if _sigmasquared varies over time
+        noisewhite = np.sqrt(_sigmasquared)*numpy_rng.normal(size=(nsensors,n))
+        noiseinnov = np.sqrt(_sigmasquared)*numpy_rng.normal(size=(nsensors,n))                
+        weightprev = 0.5
+        weightinnov = np.sqrt(3)/2
+        noise = noisewhite.copy()
+        for j in np.arange(1, n):
+            noise[:,j] = weightprev*noise[:,j-1] + weightinnov*noiseinnov[:,j-1]
+    else:
+        raise NotImplementedError
     # additive calibration constant M
     _M = paramssim['m'][:,np.newaxis]+np.sum(paramssim['mu'][:,:,np.newaxis]*normalized_weights['mu']['weight'][:,np.newaxis,:],axis=0) # inside sum: first dimension explanatory factor, second dimension product, third dimension time
     # multiplicative calibration constant L
     _L = paramssim['l'][:,np.newaxis]+np.sum(paramssim['lambda'][:,:,np.newaxis]*normalized_weights['lambda']['weight'][:,np.newaxis,:],axis=0) # inside sum: first dimension explanatory factor, second dimension product, third dimension time
     # product = M + L (theta - thetaoffset) + noise
-    y = _M+_L*(theta[np.newaxis,:]-paramssim['thetaoffset'])+noise
+    y = _M + _L*(theta[np.newaxis,:]-paramssim['thetaoffset']) + paramssim['thetaoffset'] + noise
     
     visible = {'y':y, 'explan':explan, 'fy':fy, 'day':day}
     internal = {'theta':theta, 'noise':noise, 'params': paramssim}

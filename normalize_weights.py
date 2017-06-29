@@ -9,9 +9,9 @@ from scipy.stats import gmean
 # normalize explanatory variables such that their product is 1 (i.e. divide by their geometric mean)
 def normalize_weight_multiplicative(explanatory):
     # weight is assumed positive
-    assert np.count_nonzero(explanatory<0)==0
-    multfactor=gmean(explanatory,axis=1)    
-    nweight=explanatory/multfactor[:,np.newaxis]
+    assert np.count_nonzero(explanatory<0) == 0
+    multfactor = gmean(explanatory,axis=1)    
+    nweight = explanatory/multfactor[:,np.newaxis]
     return nweight, {'multiplicative':multfactor}
 
 # normalize explanatory variables so that they have mean zero and standard deviation 1
@@ -42,15 +42,15 @@ def prepare_weights(explan=None,n=None,multiplicative=False,additive=True):
 def normalize_weights(explankappa=None,explanmu=None,explanlambda=None,explanalphabeta=None,n=None):
     explanatoryweights={}    
     # prepare kappa weights
-    explanatoryweights['kappa']=prepare_weights(explan=explankappa,n=n,multiplicative=True,additive=False)
+    explanatoryweights['kappa'] = prepare_weights(explan=explankappa,n=n,multiplicative=True,additive=False)
     
     # prepare mu weights
-    explanatoryweights['mu']=prepare_weights(explan=explanmu,n=n,multiplicative=False,additive=True)
+    explanatoryweights['mu'] = prepare_weights(explan=explanmu,n=n,multiplicative=False,additive=True)
     
     # prepare lambda weights
-    explanatoryweights['lambda']=prepare_weights(explan=explanlambda,n=n,multiplicative=False,additive=True)
+    explanatoryweights['lambda'] = prepare_weights(explan=explanlambda,n=n,multiplicative=False,additive=True)
     
     # prepare alpha/beta weights
-    explanatoryweights['alphabeta']=prepare_weights(explan=explanalphabeta,n=n,multiplicative=False,additive=True)
+    explanatoryweights['alphabeta'] = prepare_weights(explan=explanalphabeta,n=n,multiplicative=False,additive=True)
 
     return explanatoryweights

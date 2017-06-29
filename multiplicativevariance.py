@@ -15,7 +15,7 @@ n = 250
 # currently used for both simulation and inference
 seed = 1234#123
 
-estimateexplanterms = {'kappa0':False, 'kappa':False, 'mu':True, 'mu0':False, 'lambda':False, 'lambda0':False, 'alphabeta':False}
+estimateexplanterms = {'kappa0':False, 'kappa':False, 'mu':True, 'mu0':False, 'lambda':False, 'lambda0':False, 'alphabeta':False, 'sigmap0': False}
 estimatesdexplanterms = {'mu':False, 'lambda':False, 'kappa':False, 'alphabeta':False}
 
 # theta model options
@@ -74,4 +74,4 @@ if __name__=='__main__':
         #print(pm.diagnostics.gelman_rubin(trace))
         trace = read_results(pathoutrep)['trace']
         #pm.summary(trace,varnames=['sigmap','mest','lest','sdmu','sdlambda','sdkappa','sdalphabeta','porosity','a','b','kappa','mu0est','muest','lambda0est','lambdaest','alpha','beta'])
-        pm.summary(trace,varnames=['sigmap'])
+        pm.summary(trace,varnames=['mest','lest','sigmap'])

@@ -64,8 +64,16 @@ def model_setup(visible,normalized_weights,estimateexplanterms={},estimatesdexpl
             lambda0est = pm.Deterministic('lambda0est', tt.zeros(normalized_weights['lambda']['nfac']))
             L0est = l0
         
-        # prior for product noise variance (all explanatory factors set to 1)
-        sigmapsquared=pm.Exponential('sigmapsquared', 1/(0.1*priorfactor), shape=(nsensors))
+        # product variance        
+        if 'sigmap0' in estimateexplanterms and not estimateexplanterms['sigmap0']:
+            # set sigmap0 to fixed value
+            sigmap0value = inferenceparams['sigmap0'] if 'sigmap0' in inferenceparams else 0.01
+            sigmap0squared = pm.Deterministic('sigmap0squared', tt.ones(1)*sigmap0value**2)
+            sigmapsquaredest = pm.Exponential('sigmapsquaredest', 1/(0.1*priorfactor), shape=(nsensors-1))
+            sigmapsquared = tt.concatenate([sigmap0squared,sigmapsquaredest], axis=0)
+        else:
+            # prior for product noise variance (all explanatory factors set to 1)
+            sigmapsquared=pm.Exponential('sigmapsquared', 1/(0.1*priorfactor), shape=(nsensors))
         # associated standard deviation for ease of reference
         sigmap=pm.Deterministic('sigmap', tt.sqrt(sigmapsquared))
         # define kappa and predicted product noise variance depending on how/whether kappa is estimated or not
@@ -127,7 +135,7 @@ def model_setup(visible,normalized_weights,estimateexplanterms={},estimatesdexpl
                 sdalphabeta = pm.Deterministic('sdalphabeta',tt.ones(1)*1.0*priorfactor)              
             if 'alphabeta' in estimateexplanterms and estimateexplanterms['alphabeta']:
                 alphanondim = pm.StudentT('alphanondim', doft, mu=0,sd=1, shape=(normalized_weights['alphabeta']['nfac']))
-                betanondim  =pm.StudentT('betanondim', doft, mu=0, sd=1, shape=(normalized_weights['alphabeta']['nfac']))
+                betanondim  = pm.StudentT('betanondim', doft, mu=0, sd=1, shape=(normalized_weights['alphabeta']['nfac']))
                 alpha = pm.Deterministic('alpha', alphanondim*sdalphabeta)
                 beta = pm.Deterministic('beta', betanondim*sdalphabeta)             
                 A = a + tt.sum(alpha[:,np.newaxis]*normalized_weights['alphabeta']['weight'], axis=0)
@@ -139,14 +147,13 @@ def model_setup(visible,normalized_weights,estimateexplanterms={},estimatesdexpl
                 B = b      
             thetaubnondim = pm.Normal('thetaubnondim', mu=0, sd=1, shape=(n))
             thetaub = pm.Deterministic('thetaub', A+B*thetaubnondim)
-            #thetaub = pm.Normal('thetaub',mu=A, sd=B, shape=(n)) 
             theta = pm.Deterministic('theta', porosity*tt.pow(1+tt.exp(-thetaub), -1)) 
         
         # assemble mean of observed products
         thetaoffset = inferenceparams['thetaoffset'] if 'thetaoffset' in inferenceparams else 0.15
-        y0 = M0est+L0est*(theta[np.newaxis,:]-thetaoffset)
-        yrest = Mest+Lest*(theta[np.newaxis,:]-thetaoffset) 
-        yest = tt.concatenate([y0,yrest], axis=0)
+        y0 = M0est+L0est*(theta[np.newaxis,:] - thetaoffset)
+        yrest = Mest+Lest*(theta[np.newaxis,:] - thetaoffset) 
+        yest = tt.concatenate([y0,yrest], axis=0) + thetaoffset
         
         # model for observed products
         studenterrors = inferenceparams['studenterrors'] if 'studenterrors' in inferenceparams else False
@@ -154,6 +161,7 @@ def model_setup(visible,normalized_weights,estimateexplanterms={},estimatesdexpl
             y = pm.Normal('y', mu=yest, sd=tt.sqrt(sigmasquaredtotal), observed=visible['y'])
         else:
             studenterrors_dof = inferenceparams['studenterrors_dof'] if 'studenterrors_dof' in inferenceparams else doft
-            y = pm.StudentT('y', studenterrors_dof, mu=yest, sd=tt.sqrt(sigmasquaredtotal), observed=visible['y'])
+            lam = tt.pow(sigmasquaredtotal, -1)*(studenterrors_dof/(studenterrors_dof-2))
+            y = pm.StudentT('y', studenterrors_dof, mu=yest, lam=lam, observed=visible['y'])
     return model
 
