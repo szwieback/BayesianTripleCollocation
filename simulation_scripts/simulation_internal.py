@@ -21,4 +21,5 @@ def simulation_internal(scenario, n, numpy_rng=None, pathout=None, niter=2000, n
     if pathout is not None:
         save_results(pathout, {'trace':trace,'v_params':v_params,'visible':visible_w,
                                'normalized_weights':normalized_weights_w, 
-                               'simulation_normalized_weights':normalized_weights})
+                               'simulation_normalized_weights':normalized_weights,
+                               'internal':internal})

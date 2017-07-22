@@ -4,7 +4,7 @@ Created on Jun 6, 2017
 @author: zwieback
 '''
 import os
-import pickle
+import dill as pickle#import pickle
 def enforce_directory(fn):
     try:
         os.makedirs(os.path.dirname(fn))
@@ -26,7 +26,7 @@ def save_results(pathout, resultsdict):
         
 def read_results(pathin):
     results={}
-    for outputtype in ['trace','v_params','tracevi','visible','normalized_weights']:
+    for outputtype in ['trace','v_params','tracevi','visible','normalized_weights','internal']:
         try:
             res=read_pickle(os.path.join(pathin, outputtype+'.p'))
             results[outputtype]=res

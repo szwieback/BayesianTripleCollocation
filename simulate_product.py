@@ -34,10 +34,9 @@ def simulate_product(n, params, numpy_rng=None, seed=123):
         day = (fy*365.25).astype(np.int)
     elif paramssim['soilmoisturemodel'] == 'smapapi':
         from simulate_soil_moisture_smap import soil_moisture_smap_time_series
-        import math
-        paramssim['prob_dry_model'] = params['prob_dry_model'] if 'prob_dry_model' in params else lambda fy: np.array([0.55-0.1*math.cos(2*math.pi*fy), 0.85-0.1*math.cos(2*math.pi*fy)])
+        paramssim['prob_dry_model'] = params['prob_dry_model'] if 'prob_dry_model' in params else lambda fy: np.array([0.55-0.1*np.cos(2*np.pi*fy), 0.85-0.1*np.cos(2*np.pi*fy)])
         paramssim['mean_rainfall_model'] = params['mean_rainfall_model'] if 'mean_rainfall_model' in params else lambda fy: 0.006
-        paramssim['loss_model'] = params['loss_model'] if 'loss_model' in params else lambda fy: 0.9+0.06*math.cos(2*math.pi*fy)
+        paramssim['loss_model'] = params['loss_model'] if 'loss_model' in params else lambda fy: 0.9+0.06*np.cos(2*np.pi*fy)
         day,fy,theta = soil_moisture_smap_time_series(numpy_rng, n, paramssim['prob_dry_model'], paramssim['mean_rainfall_model'], paramssim['loss_model'], porosity = paramssim['porosity'])
     else:
         raise NotImplementedError    

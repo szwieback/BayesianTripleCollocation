@@ -32,9 +32,11 @@ def simulation_model(scenarioname):
     elif scenarioname == 'Q1kappa':
         params = simulation_model('Q1lambdamu')
         params['explanmodelkappa'] = Q1explanmodelkappa
-        params['kappa'] = np.array([0.0,0.5,-0.5])[np.newaxis,:]
+        params['kappa'] = np.array([0.0,0.2,-0.2])[np.newaxis,:]
     elif scenarioname == 'Q1spline':
         params = simulation_model('Q1lambdamu')
+    elif scenarioname == 'Q2spline_base':
+        params = simulation_model('Q1base')
     elif scenarioname == 'Q2lambdamu_base':
         params = simulation_model('Q1lambdamu')
     elif scenarioname in ['Q2kappa_lambdamu', 'Q2kappa_base']:

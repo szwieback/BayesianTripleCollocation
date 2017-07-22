@@ -29,7 +29,8 @@ def Q1_simulation():
                 simulation_internal(scenario, n, numpy_rng=numpy_rng, pathout=pathoutrep, niter=niter, nchains=nchains)
                 
 if __name__=='__main__':
-    Q1_simulation()     
-    import Q2
-    Q2.Q2_simulation()
-            
+    Q1_simulation()
+    #import Q2
+    #Q2.Q2_simulation()
+    #import Q3
+    #Q3.Q3_simulation()

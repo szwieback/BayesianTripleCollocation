@@ -19,7 +19,7 @@ def inference_definition(scenarioname):
     elif scenarioname == 'Q1kappa':
         estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1lambdamu')
         estimateexplanterms['kappa'] = True
-    elif scenarioname == 'Q1spline':
+    elif scenarioname in ['Q1spline', 'Q2spline_base']:
         estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1lambdamu')
         estimatesdexplanterms['mu'] = estimatesdexplanterms['lambda'] = True
     elif scenarioname == 'Q2kappa_lambdamu':
@@ -28,22 +28,22 @@ def inference_definition(scenarioname):
         estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1base')
     #'Q3dof', 'Q3priorfactor', 'Q3beta'
     elif scenarioname =='Q3dof':
-        estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1lambdamu')
+        estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1kappa')
         inferenceparams['doft'] = 10
     elif scenarioname =='Q3priorfactor':
-        estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1lambdamu')
+        estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1kappa')
         inferenceparams['priorfactor'] = 2.0
     elif scenarioname == 'Q3beta':
-        estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1lambdamu')
+        estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1kappa')
         inferenceparams['thetamodel'] = 'beta'
     elif scenarioname == 'Q3logisticspline':
-        estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1lambdamu')
+        estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1kappa')
         estimateexplanterms['alphabeta'] = True
         estimatesdexplanterms['alphabeta'] = True
     elif scenarioname in ['Q3ar1', 'Q3studenttsim']:
-        estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1lambdamu')
+        estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1kappa')
     elif scenarioname in ['Q3studenttinference', 'Q3studenttsiminference']:
-        estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1lambdamu')
+        estimateexplanterms, estimatesdexplanterms, inferenceparams = inference_definition('Q1kappa')
         inferenceparams['studenterrors'] = True
         inferenceparams['studenterrors_dof'] = 6            
     else:
@@ -52,13 +52,13 @@ def inference_definition(scenarioname):
 
 def inference_weights(scenarioname, visible, normalized_weights):
     visible_w = deepcopy(visible)
-    if scenarioname == 'Q1spline':
+    if scenarioname in  ['Q1spline', 'Q2spline_base']:
         nsegments = 12
         psp = periodic_spline_predictors(visible['fy'],nsegments=nsegments)
         visible_w['explan']['mu'] = psp['basisfunctions']['diffcoeff']
         visible_w['explan']['lambda'] = psp['basisfunctions']['diffcoeff']
         normalized_weights_w = normalize_weights(explankappa=visible['explan']['kappa'], explanmu=visible_w['explan']['mu'], explanlambda=visible_w['explan']['lambda'], n=len(visible['fy']))
-    if scenarioname == 'Q3logisticspline':
+    elif scenarioname == 'Q3logisticspline':
         nsegments = 12
         psp = periodic_spline_predictors(visible['fy'],nsegments=nsegments)
         normalized_weights_w = normalize_weights(explankappa=visible['explan']['kappa'], explanmu=visible_w['explan']['mu'], explanlambda=visible_w['explan']['lambda'], explanalphabeta = psp['basisfunctions']['diffcoeff'],n=len(visible['fy']))
