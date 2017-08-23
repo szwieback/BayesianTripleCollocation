@@ -151,6 +151,8 @@ def model_setup(visible,normalized_weights,estimateexplanterms={},estimatesdexpl
         
         # assemble mean of observed products
         thetaoffset = inferenceparams['thetaoffset'] if 'thetaoffset' in inferenceparams else 0.15
+        if thetaoffset == 'observedmean':
+            thetaoffset = np.mean(visible['y'][0,:])        
         y0 = M0est+L0est*(theta[np.newaxis,:] - thetaoffset)
         yrest = Mest+Lest*(theta[np.newaxis,:] - thetaoffset) 
         yest = tt.concatenate([y0,yrest], axis=0) + thetaoffset

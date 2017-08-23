@@ -27,8 +27,8 @@ def simulation_model(scenarioname):
     elif scenarioname == 'Q1lambdamu':        
         params = simulation_model('Q1base')
         params['explanmodellambda'] = params['explanmodelmu'] = Q1explanmodel
-        params['lambda'] = np.array([0.0,0.1,0.0])[np.newaxis,:]
-        params['mu'] = np.array([0.0,0.05,-0.05])[np.newaxis,:]
+        params['lambda'] = np.array([0.0,0.06,0.0])[np.newaxis,:]
+        params['mu'] = np.array([0.0,0.02,-0.02])[np.newaxis,:]
     elif scenarioname == 'Q1kappa':
         params = simulation_model('Q1lambdamu')
         params['explanmodelkappa'] = Q1explanmodelkappa

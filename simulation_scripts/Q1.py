@@ -30,7 +30,7 @@ def Q1_simulation():
                 
 if __name__=='__main__':
     Q1_simulation()
-    #import Q2
-    #Q2.Q2_simulation()
-    #import Q3
-    #Q3.Q3_simulation()
+    import Q2
+    Q2.Q2_simulation()
+    import Q3
+    Q3.Q3_simulation()

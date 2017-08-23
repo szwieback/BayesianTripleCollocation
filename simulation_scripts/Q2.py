@@ -9,7 +9,7 @@ from simulation_internal import simulation_internal
 from simulation_paths import path
 def Q2_simulation():
     ns = [100,250,500]
-    nrep = 100
+    nrep = 25
     niter = 2000
     nchains = 2
     

@@ -12,16 +12,18 @@ from plotting import draw_notches, prepare_figure, colsgrey
 
 clipfirstvalues = ['mu','lambda','kappa']
 scenariolabels = {'Q1kappa':'baseline','Q3dof':'prior tails', 'Q3priorfactor':'prior scale', 'Q3beta':'moisture marginal', 'Q3logisticspline':'moisture seasonal', 'Q3ar1':'autocorrelation', 'Q3studenttsim':'t error simulation', 'Q3studenttinference':'t error inference', 'Q3studenttsiminference':'t error'}
-xlabels = {'sigmap': '$\\sigma$ [$\\mathrm{m}^3$ $\\mathrm{m}^{-3}$]', 'mu': '$\\mu$ [-]', 'lambda': '$\\lambda$ [-]', 'kappa':'$\\kappa$ [-]'}
+xlabels = {'sigmap': '$\\sigma$ [$\\mathrm{m}^3$ $\\mathrm{m}^{-3}$]', 'mu': '$\\mu$ [$\\mathrm{m}^3$ $\\mathrm{m}^{-3}$]', 'lambda': '$\\lambda$ [-]', 'kappa':'$\\kappa$ [-]'}
 coltitles = {'sigmap': 'Error $\\sigma$', 'lambda': 'Multiplicative $\\lambda$', 'kappa': 'Noise coeff. $\\kappa$', 'mu': 'Additive $\\mu$'}
-def plot_Q3_params(parameters, scenarios = ['Q3dof', 'Q3priorfactor', 'Q3beta', 'Q3logisticspline', 'Q3ar1', 'Q3studenttsim', 'Q3studenttinference', 'Q3studenttsiminference'], n=250, horlims = {}):
+def plot_Q3_params(parameters, scenarios = ['Q3dof', 'Q3priorfactor', 'Q3beta', 'Q3logisticspline', 'Q3ar1', 'Q3studenttsim', 'Q3studenttinference', 'Q3studenttsiminference'], n=500, horlims = {}):
     ncols = len(parameters)
     sharex='col'
     sharey=True
-    figsize_columns = (1.7, 0.65)
-    fig, axs = prepare_figure(nrows = 1, ncols=ncols, figsize_columns=figsize_columns, sharex=sharex, sharey=sharey, bottom=0.18,left=0.18, right=0.97,top=0.91,hspace=0.45)
+    #figsize_columns = (1.7, 0.65)
+    figsize_columns = (1.3, 0.65)
+    fig, axs = prepare_figure(nrows = 1, ncols=ncols, figsize_columns=figsize_columns, sharex=sharex, sharey=sharey, bottom=0.18,left=0.22, right=0.97,top=0.91,hspace=0.6,wspace=0.25)
     import input_output
     import os
+    
     '''
     metrics = {}
     for scenario in scenarios:
@@ -40,7 +42,6 @@ def plot_Q3_params(parameters, scenarios = ['Q3dof', 'Q3priorfactor', 'Q3beta', 
     ybaruns = np.array([metrics[scenario][sortparameter][n][metricnamebar] for scenario in scenarios])[1:]
     x = np.concatenate([[0],np.argsort(ybaruns)+1])
     scenariossort = np.flip(np.array(scenarios)[x],axis=0)
-    gridlines = np.arange(0,len(scenarios)-1,4)
 
     x = np.arange(len(scenarios))
     colsbars = [colsgrey[2]]*(len(scenarios)-1)+[colsgrey[1]]
@@ -49,7 +50,7 @@ def plot_Q3_params(parameters, scenarios = ['Q3dof', 'Q3priorfactor', 'Q3beta', 
     for jparam,parameter in enumerate(parameters):
         if parameter in horlims:
             axs[jparam].set_xlim(horlims[parameter])
-            axs[jparam].set_ylim((-0.5,len(scenarios)-0.5))
+        axs[jparam].set_ylim((-0.5,len(scenarios)-0.5))
         ybar = np.array([metrics[scenario][parameter][n][metricnamebar] for scenario in scenariossort])
         yline = np.array([metrics[scenario][parameter][n][metricnameline] for scenario in scenariossort])
         axs[jparam].barh(x, ybar, height, color=colsbars)    
@@ -60,8 +61,6 @@ def plot_Q3_params(parameters, scenarios = ['Q3dof', 'Q3priorfactor', 'Q3beta', 
         for jscenario,scenario in enumerate(scenariossort):
             draw_notches(axs[jparam],yline[jscenario],x[jscenario],height=height,axheighttriangle=0.03)
         
-        #for gridline in gridlines:
-        #    axs[jparam].axhline(x[gridline]+0.5, linestyle = '-', color='#dddddd', linewidth=0.25)
     for jparam,parameter in enumerate(parameters):       
         axs[jparam].set_xlabel(xlabels[parameter])
         axs[jparam].set_title(coltitles[parameter],size=9)       
@@ -75,5 +74,5 @@ def plot_Q3_params(parameters, scenarios = ['Q3dof', 'Q3priorfactor', 'Q3beta', 
     plt.savefig('C:\\Work\\SMAP\\simulations\\Q3.pdf')
     
 if __name__ == '__main__':
-    parameters = ['sigmap', 'mu', 'lambda', 'kappa']
-    plot_Q3_params(parameters, scenarios = ['Q1kappa','Q3dof', 'Q3priorfactor', 'Q3beta', 'Q3logisticspline', 'Q3ar1', 'Q3studenttsim', 'Q3studenttinference', 'Q3studenttsiminference'])    
+    parameters = ['sigmap', 'mu', 'lambda']
+    plot_Q3_params(parameters, horlims = {'mu':(0.0,0.012)}, scenarios = ['Q1kappa','Q3dof', 'Q3priorfactor', 'Q3beta', 'Q3logisticspline', 'Q3ar1', 'Q3studenttsim', 'Q3studenttinference', 'Q3studenttsiminference'])    

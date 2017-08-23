@@ -92,7 +92,8 @@ def compute_metrics(summary, parameter = None, clipfirstvalue = []):#clip keywor
                 'absolute_bias_magnitude':absbias, 'absolute_uncertainty_posterior': absuncpost, 'absolute_uncertainty_empirical': absunctemp}
         
 if __name__=='__main__':
-    pathout='C:\\Work\\SMAP\\simulations\\Q2kappa_base\\250\\'
+    pathout='C:\\Work\\SMAP\\simulations\\Q3studenttinference\\500\\'
     summary = analyse_simulation_path(pathout, recursive=True)
-    print(compute_metrics(summary, parameter = 'lambda', clipfirstvalue = True))
+    print(np.mean([summary0['sigmap'].estimatedValue[2] for summary0 in summary]))
+    #print(compute_metrics(summary, parameter = 'sigmap', clipfirstvalue = True))
     
