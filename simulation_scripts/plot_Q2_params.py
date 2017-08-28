@@ -117,7 +117,7 @@ def plot_Q2_params(parameters, scenarios = ['Q2kappa_base', 'Q2lambdamu_base', '
     
 def plot_Q2_params_new(parameters, scenarios = ['Q2kappa_base', 'Q2lambdamu_base', 'Q2kappa_lambdamu'], ns = [100,250,500], horlims = {}):
     ncols = len(parameters)    
-    fig, axs = prepare_figure(nrows=2, ncols=ncols, figsize_columns=(1.7, 0.75), sharex='col', sharey=True, bottom=0.16, left=0.11, right=0.85, top=0.865, hspace=0.5, wspace=0.25)
+    fig, axs = prepare_figure(nrows=2, ncols=ncols, figsize_columns=(1.7, 0.75), sharex='col', sharey=True, bottom=0.16, left=0.11, right=0.85, top=0.82, hspace=0.5, wspace=0.25)
     
     import input_output
     import os
@@ -153,7 +153,7 @@ def plot_Q2_params_new(parameters, scenarios = ['Q2kappa_base', 'Q2lambdamu_base
             
         if parameter in xticks:
             axs[0,jparam].set_xticks(xticks[parameter])               
-        title=axs[0,jparam].set_title(coltitles[parameter],size=9)
+        title=axs[0,jparam].set_title(coltitles[parameter],size=8)
         title.set_position((0.5,1.21))
         #axs[jpanel].set_title(titles[jpanel])
     
@@ -219,9 +219,10 @@ def plot_Q2_params_new(parameters, scenarios = ['Q2kappa_base', 'Q2lambdamu_base
     
     yheader=1.07
     xheader=-0.7
-    axs[0,0].text(xheader,yheader,'a) Dependence of RMSE on sample size',transform=axs[0,0].transAxes,va='bottom',ha='left')
-    axs[1,0].text(xheader,yheader,'b) Bias and posterior uncertainty for 500 samples',transform=axs[1,0].transAxes,va='bottom',ha='left')
-    
+    colhead = 'k'
+    axs[0,0].text(xheader,yheader,'a) Dependence of RMSE on sample size',transform=axs[0,0].transAxes,va='bottom',ha='left', color=colhead)
+    axs[1,0].text(xheader,yheader,'b) Bias and posterior uncertainty for 500 samples',transform=axs[1,0].transAxes,va='bottom',ha='left', color=colhead)
+    axs[0,0].text(0.5,0.995,'\\textbf{Estimation accuracy}', transform=fig.transFigure, color='k', va='top', ha='center')
     for ax in axs.flatten():
         ax.tick_params(axis='y', which='both',length=0)
         for loc, spine in ax.spines.items():

@@ -6,7 +6,7 @@ Created on Jul 12, 2017
 
 import matplotlib.pyplot as plt
 
-wrrblues = ['#004174','#5898c9']            
+wrrblues = ['#004174','#5898c9', '#b4cfe4']            
 colsgrey = ['#333333','#777777','#bbbbbb']
 globfigparams={'fontsize':8,'family':'serif','usetex':True,'preamble':'\\usepackage{times}','column_inch':229.8775/72.27,'markersize':24,'markercolour':'#AA00AA','fontcolour':'#666666','tickdirection':'out'}
 

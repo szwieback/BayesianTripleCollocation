@@ -209,6 +209,7 @@ def plot_Q1_timeseries_onecolumn(scenario, n=500, scenariosadd={}):
     traceaddline, = axs[2].plot([],[], lw=lwtrace, c=coltraceadd, alpha=alphatracadd)
     axs[2].legend(handles=[trueline,traceline,traceaddline],labels=['true','parametric fit','spline fit'],loc='center left',bbox_to_anchor=(1.00, 0.5),frameon=frameon,borderaxespad=borderaxespad,handlelength=handlelength,handletextpad=handletextpad,fontsize=fontsize)
     ylab(axs[2],'$L$ (multiplicative)','[-]')
+    axs[0].text(0.5,0.995,'\\textbf{Bias estimation in simulation study}', transform=fig.transFigure, color='k', va='top', ha='center')
     for ax in axs.flatten():
         for loc, spine in ax.spines.items():
             if loc in ['right','top']:

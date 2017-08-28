@@ -50,7 +50,7 @@ def plot_Q1_sigmap(scenarios, ns = [100,250,500]):
     for ax in axs.flatten():
         for loc, spine in ax.spines.items():
             if loc in ['right','top','left']:
-                spine.set_color('none')
+                spine.set_color('none')    
     #plt.show()
     plt.savefig('C:\\Work\\SMAP\\simulations\\Q1_sigmap.pdf')
 if __name__ == '__main__':
