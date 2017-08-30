@@ -72,8 +72,13 @@ def model_setup(visible,normalized_weights,estimateexplanterms={},estimatesdexpl
             sigmapsquaredest = pm.Exponential('sigmapsquaredest', 1/(0.1*priorfactor), shape=(nsensors-1))
             sigmapsquared = tt.concatenate([sigmap0squared,sigmapsquaredest], axis=0)
         else:
-            # prior for product noise variance (all explanatory factors set to 1)
-            sigmapsquared=pm.Exponential('sigmapsquared', 1/(0.1*priorfactor), shape=(nsensors))
+            if 'sigmap0prior' in inferenceparams and inferenceparams['sigmap0prior'] is not None:
+                sigmap0squared = pm.Exponential('sigmap0squared', 1/(inferenceparams['sigmap0prior']*priorfactor), shape = (1))
+                sigmapsquaredest = pm.Exponential('sigmapsquaredest', 1/(0.1*priorfactor), shape=(nsensors-1))
+                sigmapsquared = tt.concatenate([sigmap0squared,sigmapsquaredest], axis=0)
+            else:
+                # prior for product noise variance (all explanatory factors set to 1)
+                sigmapsquared=pm.Exponential('sigmapsquared', 1/(0.1*priorfactor), shape=(nsensors))
         # associated standard deviation for ease of reference
         sigmap=pm.Deterministic('sigmap', tt.sqrt(sigmapsquared))
         # define kappa and predicted product noise variance depending on how/whether kappa is estimated or not

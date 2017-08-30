@@ -12,9 +12,9 @@ def model_inference(model, niter=2000, nadvi=200000, ntraceadvi=1000, seed=123, 
         tracevi = pm.variational.sample_vp(v_params, draws=ntraceadvi, random_seed=seed)
         traces = []
         for chain in range(nchains):
-            step = pm.NUTS(scaling=np.power(model.dict_to_array(v_params.stds), 2), is_cov=True)
+            step = pm.NUTS(scaling=np.power(model.dict_to_array(v_params.stds), 2), is_cov=True, target_accept=0.95)
             trace = pm.sample(niter, chain=chain, step=step, random_seed=seed)
             trace = trace[niter//2::2]
             traces.append(trace)
-        trace=merge_traces(traces)
+        trace = merge_traces(traces)
     return trace, v_params, tracevi
