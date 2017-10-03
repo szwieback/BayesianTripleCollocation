@@ -222,7 +222,7 @@ def plot_Q2_params_new(parameters, scenarios = ['Q2kappa_base', 'Q2lambdamu_base
     colhead = 'k'
     axs[0,0].text(xheader,yheader,'a) Dependence of RMSE on sample size',transform=axs[0,0].transAxes,va='bottom',ha='left', color=colhead)
     axs[1,0].text(xheader,yheader,'b) Bias and posterior uncertainty for 500 samples',transform=axs[1,0].transAxes,va='bottom',ha='left', color=colhead)
-    axs[0,0].text(0.5,0.995,'\\textbf{Estimation accuracy}', transform=fig.transFigure, color='k', va='top', ha='center')
+    axs[0,0].text(0.5,0.995,'\\textbf{Estimation accuracy in the simulation study: full and simplified models}', transform=fig.transFigure, color='k', va='top', ha='center')
     for ax in axs.flatten():
         ax.tick_params(axis='y', which='both',length=0)
         for loc, spine in ax.spines.items():

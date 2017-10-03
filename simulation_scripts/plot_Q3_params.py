@@ -63,7 +63,7 @@ def plot_Q3_params(parameters, scenarios = ['Q3dof', 'Q3priorfactor', 'Q3beta', 
         
     for jparam,parameter in enumerate(parameters):       
         axs[jparam].set_xlabel(xlabels[parameter])
-        axs[jparam].set_title(coltitles[parameter],size=9)       
+        axs[jparam].set_title(coltitles[parameter],size=8)       
 
     for ax in axs.flatten():
         for loc, spine in ax.spines.items():

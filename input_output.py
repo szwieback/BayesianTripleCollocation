@@ -31,5 +31,6 @@ def read_results(pathin):
             res=read_pickle(os.path.join(pathin, outputtype+'.p'))
             results[outputtype]=res
         except:
+            #raise
             pass
     return results

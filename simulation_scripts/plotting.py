@@ -7,7 +7,7 @@ Created on Jul 12, 2017
 import matplotlib.pyplot as plt
 
 wrrblues = ['#004174','#5898c9', '#b4cfe4']            
-colsgrey = ['#333333','#777777','#bbbbbb']
+colsgrey = ['#333333','#777777','#bbbbbb','#dddddd']
 globfigparams={'fontsize':8,'family':'serif','usetex':True,'preamble':'\\usepackage{times}','column_inch':229.8775/72.27,'markersize':24,'markercolour':'#AA00AA','fontcolour':'#666666','tickdirection':'out'}
 
 def prepare_figure(nrows=1, ncols=1, figsize_columns = (1.7, 0.8), sharex='col', sharey = 'row', squeeze=True, bottom=0.1, left=0.15, right=0.95, top=0.95, hspace=0.5, wspace=0.1):    
