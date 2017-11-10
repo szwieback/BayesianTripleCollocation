@@ -5,10 +5,37 @@ Created on Jul 12, 2017
 '''
 
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 
 wrrblues = ['#004174','#5898c9', '#b4cfe4']            
 colsgrey = ['#333333','#777777','#bbbbbb','#dddddd']
 globfigparams={'fontsize':8,'family':'serif','usetex':True,'preamble':'\\usepackage{times}','column_inch':229.8775/72.27,'markersize':24,'markercolour':'#AA00AA','fontcolour':'#666666','tickdirection':'out'}
+
+cdict1 = {'red':   ((0.0, 0.345, 0.345),
+                   (0.5, 0.565, 0.565),
+                   (1.0, 0.788, 0.788)),
+
+         'green': ((0.0, 0.596, 0.596),
+                   (0.5, 0.565, 0.565),
+                   (1.0, 0.345, 0.345)),
+
+         'blue':  ((0.0, 0.788, 0.788),
+                   (0.5, 0.565, 0.565),
+                   (1.0, 0.714, 0.714))
+        }    
+cdict2 = {'red':   ((0.0, 0.345, 0.345),
+                   (0.5, 0.631, 0.631),
+                   (1.0, 0.788, 0.788)),
+
+         'green': ((0.0, 0.596, 0.596),
+                   (0.5, 0.631, 0.631),
+                   (1.0, 0.345, 0.345)),
+
+         'blue':  ((0.0, 0.788, 0.788),
+                   (0.5, 0.631, 0.631),
+                   (1.0, 0.714, 0.714))
+        } 
+wrrcbardiv = LinearSegmentedColormap('BlueRedWRR', cdict2)
 
 def prepare_figure(nrows=1, ncols=1, figsize_columns = (1.7, 0.8), sharex='col', sharey = 'row', squeeze=True, bottom=0.1, left=0.15, right=0.95, top=0.95, hspace=0.5, wspace=0.1):    
     plt.rc('font',**{'size':globfigparams['fontsize'],'family':globfigparams['family']})
@@ -27,8 +54,12 @@ def prepare_figure(nrows=1, ncols=1, figsize_columns = (1.7, 0.8), sharex='col',
     width=globfigparams['column_inch']
     
     figprops = dict(facecolor='white',figsize=(figsize_columns[0]*width, figsize_columns[1]*width))
-    fig, axs = plt.subplots(nrows=nrows, ncols=ncols ,sharex=sharex,sharey=sharey,squeeze=squeeze)
-    plt.subplots_adjust(bottom=bottom, left=left, right=right, top=top, hspace=hspace, wspace=wspace)
+    if nrows > 0 and ncols >0:
+        fig, axs = plt.subplots(nrows=nrows, ncols=ncols ,sharex=sharex,sharey=sharey,squeeze=squeeze)
+        plt.subplots_adjust(bottom=bottom, left=left, right=right, top=top, hspace=hspace, wspace=wspace)
+    else:
+        fig = plt.figure()
+        axs = None
     fig.set_facecolor(figprops['facecolor'])
     fig.set_size_inches(figprops['figsize'],forward=True)
     return fig, axs
