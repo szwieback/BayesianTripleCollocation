@@ -12,7 +12,7 @@ Python >= 3.5 with pyMC3.1 and compatible versions of Theano, NumPy, Scipy; dill
 
 ## Contact
 
-Simon Zwieback [Github](https://github.com/szwieback)
+[Simon Zwieback](https://github.com/szwieback)
 
 Feedback, ideas and contributions are greatly appreciated.
 
