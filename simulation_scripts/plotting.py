@@ -5,6 +5,7 @@ Created on Jul 12, 2017
 '''
 
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from matplotlib.colors import LinearSegmentedColormap
 
 wrrblues = ['#004174','#5898c9', '#b4cfe4']            
@@ -36,7 +37,23 @@ cdict2 = {'red':   ((0.0, 0.345, 0.345),
                    (1.0, 0.714, 0.714))
         } 
 wrrcbardiv = LinearSegmentedColormap('BlueRedWRR', cdict2)
+def reverse_cmap(cmap, name='reversedcmap'):
+    reverse = []
+    k = []   
 
+    for key in cmap._segmentdata:    
+        k.append(key)
+        channel = cmap._segmentdata[key]
+        data = []
+
+        for t in channel:                    
+            data.append((1-t[0],t[2],t[1]))            
+        reverse.append(sorted(data))    
+
+    LinearL = dict(zip(k,reverse))
+    my_cmap_r = mpl.colors.LinearSegmentedColormap(name, LinearL) 
+    return my_cmap_r
+wrrcbardivrev = reverse_cmap(wrrcbardiv, 'RedBlueWRR')    
 def prepare_figure(nrows=1, ncols=1, figsize_columns = (1.7, 0.8), sharex='col', sharey = 'row', squeeze=True, bottom=0.1, left=0.15, right=0.95, top=0.95, hspace=0.5, wspace=0.1):    
     plt.rc('font',**{'size':globfigparams['fontsize'],'family':globfigparams['family']})
     plt.rcParams['text.usetex']=globfigparams['usetex']

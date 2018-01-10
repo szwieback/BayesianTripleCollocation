@@ -231,5 +231,5 @@ def plot_Q2_params_new(parameters, scenarios = ['Q2kappa_base', 'Q2lambdamu_base
     #plt.show()
     plt.savefig('C:\\Work\\SMAP\\simulations\\Q12b.pdf')    
 if __name__ == '__main__':
-    parameters = ['sigmap', 'mu', 'lambda', 'kappa']
+    parameters = ['mu', 'lambda', 'kappa', 'sigmap']
     plot_Q2_params_new(parameters, scenarios = ['Q1kappa','Q2kappa_lambdamu','Q2kappa_base'], horlims=horlims)

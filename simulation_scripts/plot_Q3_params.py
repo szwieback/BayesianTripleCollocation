@@ -19,8 +19,8 @@ def plot_Q3_params(parameters, scenarios = ['Q3dof', 'Q3priorfactor', 'Q3beta', 
     sharex='col'
     sharey=True
     #figsize_columns = (1.7, 0.65)
-    figsize_columns = (1.3, 0.65)
-    fig, axs = prepare_figure(nrows = 1, ncols=ncols, figsize_columns=figsize_columns, sharex=sharex, sharey=sharey, bottom=0.18,left=0.22, right=0.97,top=0.91,hspace=0.6,wspace=0.25)
+    figsize_columns = (1.3, 0.52)
+    fig, axs = prepare_figure(nrows = 1, ncols=ncols, figsize_columns=figsize_columns, sharex=sharex, sharey=sharey, bottom=0.23,left=0.22, right=0.97,top=0.9,hspace=0.6,wspace=0.25)
     import input_output
     import os
     
@@ -74,5 +74,5 @@ def plot_Q3_params(parameters, scenarios = ['Q3dof', 'Q3priorfactor', 'Q3beta', 
     plt.savefig('C:\\Work\\SMAP\\simulations\\Q3.pdf')
     
 if __name__ == '__main__':
-    parameters = ['sigmap', 'mu', 'lambda']
-    plot_Q3_params(parameters, horlims = {'mu':(0.0,0.012)}, scenarios = ['Q1kappa','Q3dof', 'Q3priorfactor', 'Q3beta', 'Q3logisticspline', 'Q3ar1', 'Q3studenttsim', 'Q3studenttinference', 'Q3studenttsiminference'])    
+    parameters = ['mu', 'lambda', 'sigmap']
+    plot_Q3_params(parameters, horlims = {'mu':(0.0,0.012)}, scenarios = ['Q1kappa','Q3dof', 'Q3priorfactor', 'Q3logisticspline', 'Q3ar1', 'Q3studenttsim', 'Q3studenttinference', 'Q3studenttsiminference'])    
