@@ -9,12 +9,13 @@ from simulation_analysis import analyse_simulation_path, compute_metrics
 from plotting import prepare_figure, draw_notches, draw_dot, globfigparams, colsgrey
 import numpy as np
 #pathoutrep = os.path.join(path, scenario, str(n), str(rep))
-horlims = {'sigmap':(0,0.0045),'mu':(0,0.022),'lambda':(0,0.09),'kappa':(0,0.4)}
-xticks = {'sigmap': (0, 0.003), 'mu':(0,0.02), 'lambda': (0,0.05), 'kappa': (0,0.2)}
+horlims = {'sigmap':(0,0.0045),'mu':(0,0.022),'lambda':(0,0.09),'kappa':(0,0.45)}
+#xticks = {'sigmap': (0, 0.003), 'mu':(0,0.02), 'lambda': (0,0.05), 'kappa': (0,0.2)}
+xticks = {'sigmap': (0, 0.002, 0.004), 'mu':(0,0.01,0.02), 'lambda': (0,0.04,0.08), 'kappa': (0,0.2,0.4)}
 skipbars = [('Q2kappa_base','kappa'),('Q2kappa_base','lambda'),('Q2kappa_base','mu'),('Q2kappa_lambdamu','kappa')]
 clipfirstvalues = ['mu','lambda','kappa']
 xlabels = {'sigmap': '$\\sigma$ [$\\mathrm{m}^3$ $\\mathrm{m}^{-3}$]', 'mu': '$\\mu$ [$\\mathrm{m}^3$ $\\mathrm{m}^{-3}$]', 'lambda': '$\\lambda$ [-]', 'kappa':'$\\kappa$ [-]'}
-coltitles = {'sigmap': 'Error $\\sigma$', 'lambda': 'Multiplicative $\\lambda$', 'kappa': 'Noise coeff. $\\kappa$', 'mu': 'Additive $\\mu$'}
+coltitles = {'sigmap': 'Error $\\sigma$', 'lambda': 'Sensitivity $\\lambda$', 'kappa': 'Noise coeff. $\\kappa$', 'mu': 'Additive $\\mu$'}
 rowlabels = {'Q2kappa_base': 'No $\\mu$, $\\lambda$, $\\kappa$', 'Q1kappa': 'Full model', 'Q2kappa_lambdamu': 'No $\\kappa$'}
 lw=0.5
 ms=5
@@ -93,11 +94,12 @@ def plot_Q2_params(parameters, scenarios = ['Q2kappa_base', 'Q2lambdamu_base', '
     axleg.barh(1, barl, height, color='#dddddd')
     draw_notches(axleg,biasl,1,height=height)
     draw_dot(axleg, dotl, 1)
-    axleg.annotate('Bias', xy=(biasl,1-0.5*height), xytext=(biasl-0.02,0.3),ha='center',va='top')
+    axleg.annotate('$b$', xy=(biasl,1-0.5*height), xytext=(biasl-0.02,0.3),ha='center',va='top')
     axleg.plot((biasl, biasl-0.01),(1-0.5*height-0.1, 0.35),lw=plt.rcParams['axes.linewidth'],c=globfigparams['fontcolour'])
     axleg.annotate('RMSE', xy=(barl,1+0.5*height), xytext=(barl+0.00,1.7),ha='center',va='bottom')
     axleg.plot((barl, barl),(1+0.5*height+0.1, 1.67),lw=plt.rcParams['axes.linewidth'],c=globfigparams['fontcolour'])
-    axleg.annotate('Posterior', xy=(dotl, 1-0.5*height), xytext=(dotl+0.1,0.3), ha='center', va='top')
+    axleg.annotate('$s_p$', xy=(dotl, 1-0.5*height), xytext=(dotl+0.1,0.3), ha='center', va='top')
+    
     axleg.plot((dotl+0.02, dotl+0.04),(1-0.3, 0.35),lw=plt.rcParams['axes.linewidth'],c=globfigparams['fontcolour'])
     
     '''
@@ -117,7 +119,7 @@ def plot_Q2_params(parameters, scenarios = ['Q2kappa_base', 'Q2lambdamu_base', '
     
 def plot_Q2_params_new(parameters, scenarios = ['Q2kappa_base', 'Q2lambdamu_base', 'Q2kappa_lambdamu'], ns = [100,250,500], horlims = {}):
     ncols = len(parameters)    
-    fig, axs = prepare_figure(nrows=2, ncols=ncols, figsize_columns=(1.7, 0.75), sharex='col', sharey=True, bottom=0.16, left=0.11, right=0.85, top=0.82, hspace=0.5, wspace=0.25)
+    fig, axs = prepare_figure(nrows=2, ncols=ncols, figsize_columns=(1.7, 0.78), sharex=False, sharey=True, bottom=0.16, left=0.11, right=0.85, top=0.82, hspace=0.7, wspace=0.25)
     
     import input_output
     import os
@@ -152,7 +154,8 @@ def plot_Q2_params_new(parameters, scenarios = ['Q2kappa_base', 'Q2lambdamu_base
             axs[0,jparam].plot(horline,verticalpos,color=colsgrey[jn],lw=lw,alpha=0.75)
             
         if parameter in xticks:
-            axs[0,jparam].set_xticks(xticks[parameter])               
+            axs[0,jparam].set_xticks(xticks[parameter])              
+
         title=axs[0,jparam].set_title(coltitles[parameter],size=8)
         title.set_position((0.5,1.21))
         #axs[jpanel].set_title(titles[jpanel])
@@ -172,19 +175,17 @@ def plot_Q2_params_new(parameters, scenarios = ['Q2kappa_base', 'Q2lambdamu_base
         ydot = np.array([metrics[scenario][parameter][n][metricdot] for scenario in scenarios])
         #y1 = np.array([metrics[scenario][n][rowmetrics[1]] for n in ns])
         for jscenario,scenario in enumerate(scenarios):
-            if (scenario,parameter) not in skipbars:
-                axs[1,jparam].barh(verticalpos[jscenario], ybar[jscenario], height, color=colsgrey[2])
-            else:
-                pass
-                #axs[1,jparam].text(0.06,0,'$\\rightarrow$ 0',va='bottom',ha='left',transform=axs[1,jparam].transAxes)        
+            #if (scenario,parameter) not in skipbars:
+            axs[1,jparam].barh(verticalpos[jscenario], ybar[jscenario], height, color=colsgrey[2])
+
             draw_notches(axs[1,jparam],yline[jscenario],verticalpos[jscenario],height=height)
             draw_dot(axs[1,jparam],ydot[jscenario],verticalpos[jscenario])
         #axs[1,jparam].set_yticks([])
         if parameter in xticks:
             axs[1,jparam].set_xticks(xticks[parameter])
-        if parameter in xlabels:
+        if parameter in xlabels:            
             axs[1,jparam].set_xlabel(xlabels[parameter])
-    
+        
     for jrow in np.arange(2):
         axs[jrow,0].set_yticks(verticalpos)
         axs[jrow,0].set_yticklabels([rowlabels[scenario] for scenario in scenarios])
@@ -205,23 +206,23 @@ def plot_Q2_params_new(parameters, scenarios = ['Q2kappa_base', 'Q2lambdamu_base
     axleg.set_yticks([])
     axleg.set_xlim((0,1))
     barl=0.25
-    biasl=0.07
+    biasl=0.09
     dotl=0.35
     axleg.barh(1, barl, height, color='#dddddd')
     draw_notches(axleg,biasl,1,height=height)
     draw_dot(axleg, dotl, 1)
-    axleg.annotate('Bias', xy=(biasl,1-0.5*height), xytext=(biasl-0.1,0.3),ha='center',va='top', size=fontsizelegend)
-    axleg.plot((biasl-0.01, biasl-0.025),(1-0.5*height-0.1, 0.35),lw=plt.rcParams['axes.linewidth'],c=globfigparams['fontcolour'])
+    axleg.annotate('$b$', xy=(biasl,1-0.5*height), xytext=(biasl-0.018,0.3),ha='center',va='top', size=fontsizelegend)
+    axleg.plot((biasl, biasl),(1-0.5*height-0.1, 0.35),lw=plt.rcParams['axes.linewidth'],c=globfigparams['fontcolour'])
     axleg.annotate('RMSE', xy=(barl,1+0.5*height), xytext=(barl+0.00,1.7),ha='center',va='bottom', size=fontsizelegend)
     axleg.plot((barl, barl),(1+0.5*height+0.1, 1.67),lw=plt.rcParams['axes.linewidth'],c=globfigparams['fontcolour'])
-    axleg.annotate('Posterior', xy=(dotl, 1-0.4*height), xytext=(dotl,0.3), ha='center', va='top', size=fontsizelegend)
+    axleg.annotate('$s_p$', xy=(dotl, 1-0.4*height), xytext=(dotl,0.3), ha='center', va='top', size=fontsizelegend)
     axleg.plot((dotl+0.00, dotl+0.00),(1-0.3, 0.35),lw=plt.rcParams['axes.linewidth'],c=globfigparams['fontcolour'])        
     
     yheader=1.07
     xheader=-0.7
     colhead = 'k'
     axs[0,0].text(xheader,yheader,'a) Dependence of RMSE on sample size',transform=axs[0,0].transAxes,va='bottom',ha='left', color=colhead)
-    axs[1,0].text(xheader,yheader,'b) Bias and posterior uncertainty for 500 samples',transform=axs[1,0].transAxes,va='bottom',ha='left', color=colhead)
+    axs[1,0].text(xheader,yheader,'b) Average bias and posterior standard deviation for 500 samples',transform=axs[1,0].transAxes,va='bottom',ha='left', color=colhead)
     axs[0,0].text(0.5,0.995,'\\textbf{Estimation accuracy in the simulation study: full and simplified models}', transform=fig.transFigure, color='k', va='top', ha='center')
     for ax in axs.flatten():
         ax.tick_params(axis='y', which='both',length=0)

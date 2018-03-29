@@ -13,7 +13,7 @@ from plotting import draw_notches, prepare_figure, colsgrey
 clipfirstvalues = ['mu','lambda','kappa']
 scenariolabels = {'Q1kappa':'baseline','Q3dof':'prior tails', 'Q3priorfactor':'prior scale', 'Q3beta':'moisture marginal', 'Q3logisticspline':'moisture seasonal', 'Q3ar1':'autocorrelation', 'Q3studenttsim':'t error simulation', 'Q3studenttinference':'t error inference', 'Q3studenttsiminference':'t error'}
 xlabels = {'sigmap': '$\\sigma$ [$\\mathrm{m}^3$ $\\mathrm{m}^{-3}$]', 'mu': '$\\mu$ [$\\mathrm{m}^3$ $\\mathrm{m}^{-3}$]', 'lambda': '$\\lambda$ [-]', 'kappa':'$\\kappa$ [-]'}
-coltitles = {'sigmap': 'Error $\\sigma$', 'lambda': 'Multiplicative $\\lambda$', 'kappa': 'Noise coeff. $\\kappa$', 'mu': 'Additive $\\mu$'}
+coltitles = {'sigmap': 'Error $\\sigma$', 'lambda': 'Sensitivity $\\lambda$', 'kappa': 'Noise coeff. $\\kappa$', 'mu': 'Offset $\\mu$'}
 def plot_Q3_params(parameters, scenarios = ['Q3dof', 'Q3priorfactor', 'Q3beta', 'Q3logisticspline', 'Q3ar1', 'Q3studenttsim', 'Q3studenttinference', 'Q3studenttsiminference'], n=500, horlims = {}):
     ncols = len(parameters)
     sharex='col'
